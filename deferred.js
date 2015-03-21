@@ -11,6 +11,20 @@
         return;
     }
 
+//    var forEach = (function(){
+//        if(Array.forEach){
+//            return function(arr, fn){
+//                Array.prototype.forEach.call(arr, fn);
+//            }
+//        }else {
+//            return function(arr, fn){
+//                for(var i= 0, ln = arr.length;i < ln;i++){
+//                    fn(arr[i], i);
+//                }
+//            }
+//        }
+//    })();
+
     var deferred = function(){
         var _this = this;
         _this.state = "default";
