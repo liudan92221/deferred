@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script src="../src/deferred.js"></script>
+</head>
+<body>
+    <script>
+        (function(){
+            var def1 = new deferred();
+            var def2 = new deferred();
+
+            def1.promise.success(function(data){
+                console.log(data);
+            });
+
+            def2.promise.error(function(err){
+                console.log(err);
+            });
+
+            setTimeout(function(){
+                def1.resolve("success");
+            }, 3000);
+
+            setTimeout(function(){
+                def2.reject("error");
+            }, 2000);
+        })();
+    </script>
+</body>
+</html>

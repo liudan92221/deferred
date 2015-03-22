@@ -1,6 +1,20 @@
 /**
  * Created by liudan on 15/3/21.
  */
+var forEach = (function(){
+    if(Array.prototype.forEach){
+        return function(arr, fn){
+            Array.prototype.forEach.call(arr, fn);
+        }
+    }else {
+        return function(arr, fn){
+            for(var i= 0, ln = arr.length;i < ln;i++){
+                fn(arr[i], i);
+            }
+        }
+    }
+})();
+
 var deferred = function(){
     var _this = this;
     _this.state = "default";
@@ -17,9 +31,10 @@ deferred.prototype.resolve = function (value){
         this.state = "resolved";
         this.value = value;
 
-        for(var i= 0;i < this.successCallbacklist.length;i++){
-            this.promise.success(this.successCallbacklist[i]);
-        }
+        var _this = this;
+        forEach(this.successCallbacklist, function(item){
+            _this.promise.success(item);
+        });
     }
 };
 
@@ -29,9 +44,10 @@ deferred.prototype.reject = function (value){
         this.state = "rejected";
         this.value = value;
 
-        for(var i= 0;i < this.errorCallbacklist.length;i++){
-            this.promise.error(this.errorCallbacklist[i]);
-        }
+        var _this = this;
+        forEach(this.errorCallbacklist, function(item){
+            _this.promise.error(item);
+        });
     }
 };
 
@@ -44,6 +60,11 @@ function promise(def){
 //注册成功回调方法和失败回调方法
 promise.prototype.then = function (succCallback, errCallback){
     return this.success(succCallback).error(errCallback);
+};
+
+//注册成功或者失败的回调方法
+promise.prototype.always = function(callback){
+    return this.success(callback).error(callback);
 };
 
 //注册成功回调方法
@@ -92,46 +113,46 @@ promise.prototype._getValue = function(){
 
 //注册所有promise对象
 promise.prototype.all = function(promises){
+    var _this = this;
     promises = promises instanceof Array ? promises : [promises];
-    var len = promises.length;
-    for(var i=0; i < len;i++){
-        (function(i){
-            promises[i].then(function(){
-                var state = true,
-                    args = [];
-                for(var n=0;n < len;n++){
-                    if(promises[n]._getState() == "rejected" || promises[n]._getState() == "default"){
+
+    forEach(promises, function(item){
+        item.always(function(){
+            var state = true,
+                isState = true,
+                args = [];
+
+            forEach(promises, function(pro){
+                if(isState){
+                    if(pro._getState() === "default"){
                         state = false;
-                    }else{
-                        args.push(promises[n]._getValue());
+                    }else {
+                        if(pro._getState() === "rejected"){
+                            isState = false;
+                            args = pro._getValue();
+                        }else {
+                            args.push(pro._getValue());
+                        }
                     }
-                }
-                if(state){
-                    this.def.resolve(args);
-                }
-            }, function(){
-                var state = true,
-                    args = [];
-                for(var n=0;n < len;n++){
-                    if(promises[n]._getState() == "resolved" || promises[n]._getState() == "default"){
-                        state = false;
-                    }else{
-                        args.push(promises[n]._getValue());
-                    }
-                }
-                if(state){
-                    this.def.reject(args);
                 }
             });
-        })(i)
-    }
+
+            if(isState){
+                if(state){
+                    _this.def.resolve(args);
+                }
+            }else {
+                _this.def.reject(args);
+            }
+        });
+    });
 
     return this;
 };
 
 //注册所有promise对象和成功回调函数、失败回调函数
 promise.prototype.when = function(promise, succCallback, errCallback){
-    if(promise instanceof Array || promise.__type__ == "promiseA"){
+    if((promise instanceof Array && promise.length) || promise.__type__ == "promiseA"){
         return this.all(promise).success(succCallback).error(errCallback);
     }else{
         this.def.resolve(promise);
