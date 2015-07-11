@@ -79,6 +79,10 @@
 
     //注册成功回调方法
     promise.prototype.success = function (callback){
+        if (typeof callback !== 'function') {
+            return this.def.promise;
+        }
+
         if(this.def.state == "resolved"){
             var tempValue = callback.call(this, this.def.value);
             if(tempValue){
@@ -96,6 +100,10 @@
 
     //注册失败回调方法
     promise.prototype.error = function(callback){
+        if (typeof callback !== 'function') {
+            return this.def.promise;
+        }
+
         if(this.def.state == "rejected"){
             var tempValue = callback.call(this, this.def.value);
             if(tempValue){

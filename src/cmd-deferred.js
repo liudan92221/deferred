@@ -52,10 +52,10 @@
         }
     };
 
+    var type = "promiseA";
+
     function promise(def){
         this.def = def;
-
-        this.__type__ = "promiseA";
     }
 
     //注册成功回调方法和失败回调方法
@@ -70,10 +70,14 @@
 
     //注册成功回调方法
     promise.prototype.success = function (callback){
+        if (typeof callback !== 'function') {
+            return this.def.promise;
+        }
+
         if(this.def.state == "resolved"){
             var tempValue = callback.call(this, this.def.value);
             if(tempValue){
-                if(tempValue.__type__ == "promiseA"){
+                if(tempValue._getType && tempValue._getType()  == "promiseA"){
                     this.def.promise = tempValue;
                 }else{
                     this.def.value = tempValue
@@ -87,10 +91,14 @@
 
     //注册失败回调方法
     promise.prototype.error = function(callback){
+        if (typeof callback !== 'function') {
+            return this.def.promise;
+        }
+
         if(this.def.state == "rejected"){
             var tempValue = callback.call(this, this.def.value);
             if(tempValue){
-                if(tempValue.__type__ == "promiseA"){
+                if(tempValue._getType && tempValue._getType() == "promiseA"){
                     this.def.promise = tempValue;
                 }else{
                     this.def.value = tempValue
@@ -110,6 +118,11 @@
     //私有方法，获取deferred的value
     promise.prototype._getValue = function(){
         return this.def.value;
+    };
+
+    //私有方法，获取promise对象type，用于判断是否为promise对象
+    promise.prototype._getType = function(){
+        return type;
     };
 
     //注册所有promise对象
@@ -153,7 +166,8 @@
 
     //注册所有promise对象和成功回调函数、失败回调函数
     promise.prototype.when = function(promise, succCallback, errCallback){
-        if((promise instanceof Array && promise.length) || promise.__type__ == "promiseA"){
+        if((promise instanceof Array && promise.length) ||
+            (promise._getType && promise._getType() == "promiseA")){
             return this.all(promise).success(succCallback).error(errCallback);
         }else{
             this.def.resolve(promise);
