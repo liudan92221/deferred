@@ -68,6 +68,7 @@
     }
 
     //注册成功回调方法和失败回调方法
+
     promise.prototype.then = function (succCallback, errCallback){
         return this.success(succCallback).error(errCallback);
     };
