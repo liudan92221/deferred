@@ -25,7 +25,7 @@ var deferred = function(){
     _this.promise = new promise(_this);
 };
 
-//deferred失败接口，接收失败或者错误参数
+//deferred成功接口，接收数据参数
 deferred.prototype.resolve = function (value){
     if(this.state == "default"){
         this.state = "resolved";
@@ -38,7 +38,7 @@ deferred.prototype.resolve = function (value){
     }
 };
 
-//deferred成功接口，接收数据参数
+//deferred失败接口，接收失败或者错误参数
 deferred.prototype.reject = function (value){
     if(this.state == "default"){
         this.state = "rejected";
