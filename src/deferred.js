@@ -183,7 +183,7 @@
             return this.success(succCallback).error(errCallback);
         }
     };
-
-    window.deferred = deferred;
-
+    "function" == typeof define ? define(function() {
+        return deferred;
+    }) : "undefined" != typeof exports ? module.exports = deferred : window.deferred = deferred;
 })(window);
